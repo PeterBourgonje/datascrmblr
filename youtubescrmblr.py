@@ -42,10 +42,12 @@ def collect_urls(fp):
     search_terms = random.sample(list(terms), 20)
     vids = []
     for st in search_terms:
+        sys.stderr.write('\tsearch term: %s\n' % st)
         search_response = yt.search().list(q=st, type="video", part="id,snippet").execute()
         for res in search_response.get('items', []):
             if res['id']['kind'] == 'youtube#video':
                 vids.append(res['id']['videoId'])
+        time.sleep(10)
     random.shuffle(vids)
     urls = []
     for vid in vids:
@@ -58,8 +60,11 @@ def collect_urls(fp):
 def play_video(url):    
     
     driver.get(url)
-    element = driver.find_element_by_id("player-container")
-    element.click()
+    try:
+        element = driver.find_element_by_id("player-container")
+        element.click()
+    except Exception as e:
+        sys.stderr.write('WARNING: Failed to play %s: %s\n' % (url, e))
 
 
 if __name__ == '__main__':
@@ -78,6 +83,6 @@ if __name__ == '__main__':
             play_video(random.choice(urls))
             time.sleep(random.randint(300,1200))
     except KeyboardInterrupt:
-        pass
+        sys.exit(1)
 
     
